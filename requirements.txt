@@ -2,7 +2,7 @@ fastapi
 uvicorn[standard]
 langgraph
 groq
-sentence-transformers
+huggingface_hub
 qdrant-client
 langfuse
 python-dotenv

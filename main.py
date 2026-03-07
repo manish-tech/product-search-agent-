@@ -19,10 +19,10 @@ def _background_init():
     """Heavy initialization in background thread so the port binds fast."""
     global _ready
 
-    print("Loading embedding model...")
+    print("Initializing embedding service...")
     from services.embedder import get_embedder
     get_embedder()
-    print("Embedding model loaded.")
+    print("Embedding service ready (using HuggingFace API).")
 
     print("Initializing Qdrant service...")
     from services.qdrant_service import get_qdrant_service
@@ -36,28 +36,27 @@ def _background_init():
     print("Ingesting product catalog...")
     from scripts.ingest_catalog import generate_products
     qdrant = get_qdrant_service()
-    products = generate_products()
+    products = generate_products()[:50]
     tenant_id = "retailer_abc"
-    qdrant.ensure_collection(tenant_id)
-    success = 0
-    for p in products:
-        try:
-            qdrant.upsert_product(
-                tenant_id=tenant_id,
-                sku=p["sku"],
-                name=p["name"],
-                category=p["category"],
-                brand=p["brand"],
-                price=p["price"],
-                size=p["size"],
-                color=p["color"],
-                attributes=p["attributes"],
-                description=p["description"]
-            )
-            success += 1
-        except Exception as e:
-            print(f"  Failed: {p['sku']} - {e}")
-    print(f"Ingested {success}/{len(products)} products.")
+    try:
+        count = qdrant.upsert_products_batch(tenant_id, products)
+        print(f"Ingested {count} products.")
+    except Exception as e:
+        print(f"Batch ingest failed: {e}, falling back to individual ingest...")
+        success = 0
+        for p in products:
+            try:
+                qdrant.upsert_product(
+                    tenant_id=tenant_id,
+                    sku=p["sku"], name=p["name"], category=p["category"],
+                    brand=p["brand"], price=p["price"], size=p["size"],
+                    color=p["color"], attributes=p["attributes"],
+                    description=p["description"]
+                )
+                success += 1
+            except Exception as e2:
+                print(f"  Failed: {p['sku']} - {e2}")
+        print(f"Ingested {success}/{len(products)} products.")
 
     # Register routers after init is complete
     from routers.ingest import router as ingest_router

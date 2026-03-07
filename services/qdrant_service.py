@@ -103,6 +103,52 @@ class QdrantService:
             ]
         )
 
+    def upsert_products_batch(self, tenant_id: str, products: List[dict]) -> int:
+        """Upsert products in batch with batched embedding API calls."""
+        self.ensure_collection(tenant_id)
+        collection_name = self._get_collection_name(tenant_id)
+
+        # Prepare texts for batch embedding
+        texts = []
+        for p in products:
+            text = f"{p['name']} {p['category']} {' '.join(p.get('attributes', []))}"
+            if p.get('description'):
+                text += f" {p['description']}"
+            texts.append(text)
+
+        # Batch embed (chunks of 32 to avoid API limits)
+        all_vectors = []
+        for i in range(0, len(texts), 32):
+            batch = texts[i:i + 32]
+            vectors = self.embedder.encode_batch(batch)
+            all_vectors.extend(vectors)
+
+        # Build points
+        points = []
+        for p, vector in zip(products, all_vectors):
+            point_id = int(hashlib.sha256(p['sku'].encode()).hexdigest()[:16], 16)
+            payload = {
+                "sku": p['sku'],
+                "name": p['name'],
+                "category": p['category'].lower(),
+                "brand": p['brand'].lower(),
+                "price": p['price'],
+                "size": p.get('size', []),
+                "color": p.get('color', '').lower() if p.get('color') else None,
+                "attributes": [a.lower() for a in p.get('attributes', [])],
+                "description": p.get('description')
+            }
+            points.append(PointStruct(id=point_id, vector=vector, payload=payload))
+
+        # Upsert in chunks of 100
+        for i in range(0, len(points), 100):
+            self.client.upsert(
+                collection_name=collection_name,
+                points=points[i:i + 100]
+            )
+
+        return len(points)
+
     def build_filter(self, filters: dict) -> Optional[Filter]:
         """
         Build Qdrant filter from extracted filters dict.
