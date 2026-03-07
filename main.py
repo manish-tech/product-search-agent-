@@ -5,11 +5,7 @@ from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from models.schemas import HealthResponse
-from routers.ingest import router as ingest_router
-from routers.search import router as search_router
-from observability.langfuse_client import shutdown as shutdown_langfuse
+from fastapi.responses import JSONResponse
 
 
 # Load environment variables
@@ -63,22 +59,30 @@ def _background_init():
             print(f"  Failed: {p['sku']} - {e}")
     print(f"Ingested {success}/{len(products)} products.")
 
+    # Register routers after init is complete
+    from routers.ingest import router as ingest_router
+    from routers.search import router as search_router
+    app.include_router(search_router)
+    app.include_router(ingest_router)
+
     _ready = True
     print("Product Search Agent ready!")
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Start heavy init in background so port binds immediately
+async def lifespan(app_instance: FastAPI):
     print("Starting Product Search Agent...")
     init_thread = threading.Thread(target=_background_init, daemon=True)
     init_thread.start()
 
     yield
 
-    # Shutdown
     print("Shutting down Product Search Agent...")
-    shutdown_langfuse()
+    try:
+        from observability.langfuse_client import shutdown as shutdown_langfuse
+        shutdown_langfuse()
+    except Exception:
+        pass
     print("Shutdown complete.")
 
 
@@ -99,30 +103,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(search_router)
-app.include_router(ingest_router)
 
-
-@app.get("/health", response_model=HealthResponse, tags=["health"])
+@app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return HealthResponse(status="ok")
+    return {"status": "ok"}
 
 
-@app.get("/ready", tags=["health"])
+@app.get("/ready")
 async def readiness_check():
     """Readiness check — returns 503 until initialization is complete."""
     if not _ready:
-        from fastapi.responses import JSONResponse
-        return JSONResponse(
-            status_code=503,
-            content={"status": "initializing"}
-        )
+        return JSONResponse(status_code=503, content={"status": "initializing"})
     return {"status": "ready"}
 
 
-@app.get("/", tags=["root"])
+@app.get("/")
 async def root():
     """Root endpoint with API info."""
     return {
