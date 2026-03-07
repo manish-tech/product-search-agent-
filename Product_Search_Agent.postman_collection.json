@@ -30,6 +30,13 @@
 					}
 				},
 				{
+					"name": "Readiness Check",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/ready"
+					}
+				},
+				{
 					"name": "Root",
 					"request": {
 						"method": "GET",
