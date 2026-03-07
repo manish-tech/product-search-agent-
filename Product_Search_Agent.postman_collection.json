@@ -1,0 +1,185 @@
+{
+	"info": {
+		"name": "Product Search Agent",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"description": "Conversational product search API with Groq LLM + Qdrant"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000"
+		},
+		{
+			"key": "tenant_id",
+			"value": "retailer_abc"
+		},
+		{
+			"key": "session_id",
+			"value": "550e8400-e29b-41d4-a716"
+		}
+	],
+	"item": [
+		{
+			"name": "Health & Info",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/health"
+					}
+				},
+				{
+					"name": "Root",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/"
+					}
+				}
+			]
+		},
+		{
+			"name": "Ingest",
+			"item": [
+				{
+					"name": "Ingest Single Product",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/v1/ingest/product",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tenant_id\": \"{{tenant_id}}\",\n  \"sku\": \"NK-RUN-001\",\n  \"name\": \"Nike Air Zoom Wide Runner\",\n  \"category\": \"running shoes\",\n  \"brand\": \"Nike\",\n  \"price\": 1899,\n  \"size\": [\"8\", \"9\", \"10\", \"11\"],\n  \"color\": \"black\",\n  \"attributes\": [\"wide fit\", \"cushioned\", \"lightweight\"],\n  \"description\": \"Lightweight running shoe designed for wide feet with responsive cushioning.\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Ingest Bulk Products (Full Catalog)",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/v1/ingest/products/bulk",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tenant_id\": \"{{tenant_id}}\",\n  \"products\": [\n    {\"tenant_id\":\"{{tenant_id}}\",\"sku\":\"NK-RUN-001\",\"name\":\"Nike Air Zoom Wide Runner\",\"category\":\"running shoes\",\"brand\":\"Nike\",\"price\":1899,\"size\":[\"8\",\"9\",\"10\",\"11\"],\"color\":\"black\",\"attributes\":[\"wide fit\",\"cushioned\",\"lightweight\"],\"description\":\"Lightweight running shoe designed for wide feet with responsive cushioning.\"},\n    {\"tenant_id\":\"{{tenant_id}}\",\"sku\":\"NK-RUN-002\",\"name\":\"Nike Pegasus 40\",\"category\":\"running shoes\",\"brand\":\"Nike\",\"price\":2499,\"size\":[\"7\",\"8\",\"9\",\"10\",\"11\",\"12\"],\"color\":\"white\",\"attributes\":[\"breathable\",\"cushioned\",\"everyday running\"],\"description\":\"Versatile running shoe for daily training with excellent comfort.\"},\n    {\"tenant_id\":\"{{tenant_id}}\",\"sku\":\"AD-RUN-001\",\"name\":\"Adidas Ultraboost 23\",\"category\":\"running shoes\",\"brand\":\"Adidas\",\"price\":3299,\"size\":[\"7\",\"8\",\"9\",\"10\",\"11\"],\"color\":\"black\",\"attributes\":[\"boost cushioning\",\"responsive\",\"premium\"],\"description\":\"Premium running shoe with Boost technology for maximum energy return.\"},\n    {\"tenant_id\":\"{{tenant_id}}\",\"sku\":\"AD-RUN-002\",\"name\":\"Adidas Runfalcon 3\",\"category\":\"running shoes\",\"brand\":\"Adidas\",\"price\":1299,\"size\":[\"6\",\"7\",\"8\",\"9\",\"10\",\"11\"],\"color\":\"blue\",\"attributes\":[\"budget friendly\",\"lightweight\",\"beginner\"],\"description\":\"Affordable running shoe for beginners and casual runners.\"},\n    {\"tenant_id\":\"{{tenant_id}}\",\"sku\":\"PU-RUN-001\",\"name\":\"Puma Velocity Nitro 2\",\"category\":\"running shoes\",\"brand\":\"Puma\",\"price\":1999,\"size\":[\"7\",\"8\",\"9\",\"10\"],\"color\":\"red\",\"attributes\":[\"nitro foam\",\"responsive\",\"fast\"],\"description\":\"Fast running shoe with Nitro foam for speed training.\"},\n    {\"tenant_id\":\"{{tenant_id}}\",\"sku\":\"WL-TRK-001\",\"name\":\"Woodland Adventure Trek\",\"category\":\"trekking shoes\",\"brand\":\"Woodland\",\"price\":1499,\"size\":[\"7\",\"8\",\"9\",\"10\",\"11\"],\"color\":\"brown\",\"attributes\":[\"waterproof\",\"rugged\",\"ankle support\"],\"description\":\"Durable trekking shoe with waterproof membrane and excellent grip.\"},\n    {\"tenant_id\":\"{{tenant_id}}\",\"sku\":\"WL-TRK-002\",\"name\":\"Woodland Everest Pro\",\"category\":\"trekking shoes\",\"brand\":\"Woodland\",\"price\":2199,\"size\":[\"8\",\"9\",\"10\",\"11\"],\"color\":\"green\",\"attributes\":[\"waterproof\",\"insulated\",\"high altitude\"],\"description\":\"Professional trekking boots for high altitude expeditions.\"},\n    {\"tenant_id\":\"{{tenant_id}}\",\"sku\":\"DK-TRK-001\",\"name\":\"Decathlon Trek 100\",\"category\":\"trekking shoes\",\"brand\":\"Decathlon\",\"price\":999,\"size\":[\"6\",\"7\",\"8\",\"9\",\"10\"],\"color\":\"grey\",\"attributes\":[\"budget friendly\",\"lightweight\",\"beginner\"],\"description\":\"Entry-level trekking shoe for casual hikes and trails.\"},\n    {\"tenant_id\":\"{{tenant_id}}\",\"sku\":\"NK-CAS-001\",\"name\":\"Nike Air Force 1\",\"category\":\"casual sneakers\",\"brand\":\"Nike\",\"price\":2899,\"size\":[\"6\",\"7\",\"8\",\"9\",\"10\",\"11\",\"12\"],\"color\":\"white\",\"attributes\":[\"classic\",\"leather\",\"street style\"],\"description\":\"Iconic casual sneaker with classic design and premium leather.\"},\n    {\"tenant_id\":\"{{tenant_id}}\",\"sku\":\"AD-CAS-001\",\"name\":\"Adidas Stan Smith\",\"category\":\"casual sneakers\",\"brand\":\"Adidas\",\"price\":2499,\"size\":[\"6\",\"7\",\"8\",\"9\",\"10\",\"11\"],\"color\":\"white\",\"attributes\":[\"classic\",\"leather\",\"minimalist\"],\"description\":\"Timeless tennis-inspired sneaker with clean minimalist design.\"},\n    {\"tenant_id\":\"{{tenant_id}}\",\"sku\":\"PU-CAS-001\",\"name\":\"Puma Suede Classic\",\"category\":\"casual sneakers\",\"brand\":\"Puma\",\"price\":1899,\"size\":[\"7\",\"8\",\"9\",\"10\"],\"color\":\"black\",\"attributes\":[\"suede\",\"retro\",\"street style\"],\"description\":\"Retro suede sneaker with classic Puma styling.\"},\n    {\"tenant_id\":\"{{tenant_id}}\",\"sku\":\"NK-JKT-001\",\"name\":\"Nike Windrunner Jacket\",\"category\":\"jackets\",\"brand\":\"Nike\",\"price\":1499,\"size\":[\"S\",\"M\",\"L\",\"XL\"],\"color\":\"blue\",\"attributes\":[\"windproof\",\"lightweight\",\"packable\"],\"description\":\"Lightweight windbreaker jacket perfect for outdoor activities.\"},\n    {\"tenant_id\":\"{{tenant_id}}\",\"sku\":\"WL-JKT-001\",\"name\":\"Woodland Thermal Trek Jacket\",\"category\":\"jackets\",\"brand\":\"Woodland\",\"price\":1299,\"size\":[\"M\",\"L\",\"XL\",\"XXL\"],\"color\":\"olive\",\"attributes\":[\"warm\",\"insulated\",\"trekking\"],\"description\":\"Insulated jacket for cold weather trekking and outdoor adventures.\"},\n    {\"tenant_id\":\"{{tenant_id}}\",\"sku\":\"DK-JKT-001\",\"name\":\"Decathlon Rain Jacket\",\"category\":\"jackets\",\"brand\":\"Decathlon\",\"price\":799,\"size\":[\"S\",\"M\",\"L\",\"XL\"],\"color\":\"yellow\",\"attributes\":[\"waterproof\",\"lightweight\",\"budget friendly\"],\"description\":\"Affordable waterproof jacket for rainy conditions.\"},\n    {\"tenant_id\":\"{{tenant_id}}\",\"sku\":\"NK-BAG-001\",\"name\":\"Nike Brasilia Training Backpack\",\"category\":\"backpacks\",\"brand\":\"Nike\",\"price\":999,\"size\":[\"25L\"],\"color\":\"black\",\"attributes\":[\"gym\",\"training\",\"laptop compartment\"],\"description\":\"Versatile training backpack with dedicated laptop sleeve.\"},\n    {\"tenant_id\":\"{{tenant_id}}\",\"sku\":\"WL-BAG-001\",\"name\":\"Woodland Expedition 40L\",\"category\":\"backpacks\",\"brand\":\"Woodland\",\"price\":1799,\"size\":[\"40L\"],\"color\":\"green\",\"attributes\":[\"trekking\",\"rain cover\",\"ergonomic\"],\"description\":\"Professional trekking backpack with rain cover and hip belt.\"},\n    {\"tenant_id\":\"{{tenant_id}}\",\"sku\":\"DK-BAG-001\",\"name\":\"Decathlon Day Hike 20L\",\"category\":\"backpacks\",\"brand\":\"Decathlon\",\"price\":599,\"size\":[\"20L\"],\"color\":\"blue\",\"attributes\":[\"day hike\",\"lightweight\",\"budget friendly\"],\"description\":\"Compact and lightweight backpack for day hikes.\"},\n    {\"tenant_id\":\"{{tenant_id}}\",\"sku\":\"NK-TOP-001\",\"name\":\"Nike Dri-FIT T-Shirt\",\"category\":\"sports wear\",\"brand\":\"Nike\",\"price\":599,\"size\":[\"S\",\"M\",\"L\",\"XL\"],\"color\":\"black\",\"attributes\":[\"moisture wicking\",\"breathable\",\"training\"],\"description\":\"Moisture-wicking t-shirt for intense training sessions.\"},\n    {\"tenant_id\":\"{{tenant_id}}\",\"sku\":\"AD-TOP-001\",\"name\":\"Adidas Aeroready T-Shirt\",\"category\":\"sports wear\",\"brand\":\"Adidas\",\"price\":649,\"size\":[\"S\",\"M\",\"L\",\"XL\"],\"color\":\"white\",\"attributes\":[\"moisture wicking\",\"breathable\",\"training\"],\"description\":\"Aeroready technology t-shirt for optimal workout comfort.\"},\n    {\"tenant_id\":\"{{tenant_id}}\",\"sku\":\"PU-TOP-001\",\"name\":\"Puma Training Tank Top\",\"category\":\"sports wear\",\"brand\":\"Puma\",\"price\":499,\"size\":[\"S\",\"M\",\"L\"],\"color\":\"grey\",\"attributes\":[\"sleeveless\",\"breathable\",\"gym\"],\"description\":\"Sleeveless tank top ideal for gym workouts.\"}\n  ]\n}"
+						}
+					}
+				},
+				{
+					"name": "Get Collection Info",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api/v1/ingest/collection/{{tenant_id}}"
+					}
+				},
+				{
+					"name": "Delete Product",
+					"request": {
+						"method": "DELETE",
+						"url": "{{base_url}}/api/v1/ingest/product/{{tenant_id}}/NK-RUN-001"
+					}
+				}
+			]
+		},
+		{
+			"name": "Search",
+			"item": [
+				{
+					"name": "Search - Nike running shoes under 2000",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/v1/search",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tenant_id\": \"{{tenant_id}}\",\n  \"session_id\": \"{{session_id}}\",\n  \"message\": \"nike running shoes under 2000\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Search - Refine by size (multi-turn)",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/v1/search",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tenant_id\": \"{{tenant_id}}\",\n  \"session_id\": \"{{session_id}}\",\n  \"message\": \"in size 10\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Search - Something warm for trek under 1500",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/v1/search",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tenant_id\": \"{{tenant_id}}\",\n  \"session_id\": \"new-session-001\",\n  \"message\": \"something warm for a trek under 1500\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Search - Waterproof trekking shoes",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/v1/search",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tenant_id\": \"{{tenant_id}}\",\n  \"session_id\": \"new-session-002\",\n  \"message\": \"waterproof trekking shoes\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Search - Budget friendly backpack",
+					"request": {
+						"method": "POST",
+						"url": "{{base_url}}/api/v1/search",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tenant_id\": \"{{tenant_id}}\",\n  \"session_id\": \"new-session-003\",\n  \"message\": \"budget friendly backpack for day hiking\"\n}"
+						}
+					}
+				}
+			]
+		}
+	]
+}
