@@ -83,11 +83,13 @@ The LLM is called in only **2 places**: filter extraction and result reranking.
 
 **Trade-off:** Data is lost on restart. For production with persistent data, switch to Qdrant Cloud (free 1GB tier).
 
-### Why sentence-transformers (all-MiniLM-L6-v2)?
+### Why HuggingFace Inference API (all-MiniLM-L6-v2)?
 
-- **Runs locally** — no API calls, no cost, no latency
+- **No local model needed** — embeddings are computed via HuggingFace's free API
+- **Low memory** — app uses ~100 MB RAM instead of ~430 MB with local sentence-transformers
 - **384-dimensional vectors** — small and fast
 - **Good quality** — despite its size, it captures semantic meaning well enough for product search
+- **Free tier** — requires a free HF token, 1,000 requests/day
 
 ### Why Langfuse?
 
