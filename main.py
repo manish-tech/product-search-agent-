@@ -1,4 +1,5 @@
 import os
+import threading
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
@@ -14,35 +15,28 @@ from observability.langfuse_client import shutdown as shutdown_langfuse
 # Load environment variables
 load_dotenv()
 
+# Track whether startup initialization is complete
+_ready = False
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """
-    Manage application lifecycle.
-    - Startup: Initialize services
-    - Shutdown: Cleanup resources
-    """
-    # Startup
-    print("Starting Product Search Agent...")
 
-    # Pre-load embedding model (takes a few seconds on first load)
+def _background_init():
+    """Heavy initialization in background thread so the port binds fast."""
+    global _ready
+
     print("Loading embedding model...")
     from services.embedder import get_embedder
     get_embedder()
     print("Embedding model loaded.")
 
-    # Initialize Qdrant service
     print("Initializing Qdrant service...")
     from services.qdrant_service import get_qdrant_service
     get_qdrant_service()
     print("Qdrant service initialized.")
 
-    # Initialize session store
     from services.session_store import get_session_store
     get_session_store()
     print("Session store initialized.")
 
-    # Ingest sample catalog into in-memory Qdrant
     print("Ingesting product catalog...")
     from scripts.ingest_catalog import generate_products
     qdrant = get_qdrant_service()
@@ -69,7 +63,16 @@ async def lifespan(app: FastAPI):
             print(f"  Failed: {p['sku']} - {e}")
     print(f"Ingested {success}/{len(products)} products.")
 
+    _ready = True
     print("Product Search Agent ready!")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Start heavy init in background so port binds immediately
+    print("Starting Product Search Agent...")
+    init_thread = threading.Thread(target=_background_init, daemon=True)
+    init_thread.start()
 
     yield
 
@@ -105,6 +108,18 @@ app.include_router(ingest_router)
 async def health_check():
     """Health check endpoint."""
     return HealthResponse(status="ok")
+
+
+@app.get("/ready", tags=["health"])
+async def readiness_check():
+    """Readiness check — returns 503 until initialization is complete."""
+    if not _ready:
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=503,
+            content={"status": "initializing"}
+        )
+    return {"status": "ready"}
 
 
 @app.get("/", tags=["root"])
