@@ -14,9 +14,6 @@ from qdrant_client.http.models import (
     MatchAny,
 )
 
-from services.embedder import get_embedder
-
-
 class QdrantService:
     """Service for interacting with Qdrant vector database."""
 
@@ -30,6 +27,7 @@ class QdrantService:
             # Local in-memory Qdrant for development
             self.client = QdrantClient(":memory:")
 
+        from services.embedder import get_embedder
         self.embedder = get_embedder()
         self.vector_size = 384  # all-MiniLM-L6-v2 dimension
 
